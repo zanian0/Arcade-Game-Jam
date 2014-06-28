@@ -28,6 +28,8 @@ public class BaseObject
     
     public static final float PADDLE_SPEED = 200.0f;
     
+    public int score;
+    
     BaseObject ()
     {
         bounds = new Rectangle( 0.0f, 0.0f, 0.0f, 0.0f );
@@ -47,6 +49,8 @@ public class BaseObject
         moveDir = 0;
         
         isActive = false;
+        
+        score = 1;
     }
     
     public void integrate( float dt ) 
@@ -68,8 +72,11 @@ public class BaseObject
 
     public void draw( ShapeRenderer renderer )
     {
-        renderer.setColor( color );
-        renderer.filledRect( bounds.x, bounds.y, bounds.width, bounds.height );
+        if ( score > 0 )
+        {
+            renderer.setColor( color );
+            renderer.filledRect( bounds.x, bounds.y, bounds.width, bounds.height );
+        }
     }
     
     public void setPosition( float x, float y )

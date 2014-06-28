@@ -22,7 +22,10 @@ public class GameScreen implements Screen
     float w;
     float h;
 
+    // Timers
     float frameTimer;
+    float scoreTimer;
+    
     private OrthographicCamera camera;
 
     private MyGdxGame game;
@@ -49,10 +52,25 @@ public class GameScreen implements Screen
     float paddleFieldHeight;
     float paddleFieldWidth;
     
+    // Last paddle hit color.
+    Color lastHitColor;
+    
+    //Game states.
+    public enum GameStates {
+        INTRO,
+        PLAY,
+        SCORE,
+        RESET,
+        WIN
+    };
+    
+    GameStates state;
+    
     // DEFINES
     public static final int BALL_SIZE = 6;
     public static final float PADDLE_HEIGHT = 50.0f;
     public static final float PADDLE_WIDTH = 5.0f;
+    public static final int STARTING_SCORE = 2;
   
     
     public GameScreen(MyGdxGame game)
@@ -77,6 +95,7 @@ public class GameScreen implements Screen
         renderer.setProjectionMatrix( camera.combined );
         
         frameTimer = 0.0f;
+        scoreTimer = 0.0f;
         
         // Set up the field.
         fieldBounds = new Rectangle();
@@ -88,7 +107,7 @@ public class GameScreen implements Screen
         
         // Set up paddle fields.
         paddleFieldHeight = (fieldBounds.height / 2.0f);
-        paddleFieldWidth = 10.0f;
+        paddleFieldWidth = 20.0f;
         
         // Instantiate player objects.
         BoundsLeft = new Rectangle();
@@ -100,29 +119,70 @@ public class GameScreen implements Screen
         paddleTop = new PaddleLR();
         paddleBottom = new PaddleLR();
         
-        //Instantiate the ball.
+        // Instantiate the ball.
         ball = new Ball();
         
-        //Initialize all of the players.
+        // Initialize all of the players.
         initialize();
+        
+        // Init the ball color.
+        lastHitColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        
+        // Set the initial state.
+        state = GameStates.INTRO;
     }
 
     @Override
     public void render( float delta )
     {
-        frameTimer += Gdx.graphics.getDeltaTime();
         
-        if (frameTimer > 0.015f)
+        switch (state)
         {
-            frameTimer = 0.0f;
-            update();
-        }
-        
-        draw();
+            case INTRO:
+                state = GameStates.PLAY;
+                break;
+                
+            case PLAY:
+                frameTimer += Gdx.graphics.getDeltaTime();
+                
+                if (frameTimer > 0.015f)
+                {
+                    frameTimer = 0.0f;
+                    update();
+                }
+                
+                draw();
+                break;
+                
+            case SCORE:
+                draw();
+                
+                scoreTimer += Gdx.graphics.getDeltaTime();
+                if ( scoreTimer > 2.0f )
+                    state = GameStates.RESET;
+                break;
+                
+            case RESET:
+                frameTimer = 0.0f;
+                scoreTimer = 0.0f;
+                
+                reset();
+                
+                state = GameStates.PLAY;
+                break;
+                
+            case WIN:
+                break;
+                
+            default:
+                break;  
+        };
+ 
     }
-
+    
     public void update()
     {
+        
         input();
 
         ball.integrate( Gdx.graphics.getDeltaTime() );
@@ -131,7 +191,7 @@ public class GameScreen implements Screen
         paddleTop.integrate( Gdx.graphics.getDeltaTime() );
         paddleBottom.integrate( Gdx.graphics.getDeltaTime() );
         
-        collision();
+        collision();  
         
     }
     
@@ -160,25 +220,36 @@ public class GameScreen implements Screen
         renderer.begin( ShapeRenderer.ShapeType.Rectangle );
             
             //Draw the field.
-            renderer.setColor( new Color(1,1,1,1) );
+            renderer.setColor( lastHitColor );
             renderer.rect( fieldBounds.x, fieldBounds.y, fieldBounds.width, fieldBounds.height );
-            
+            // Draw the Left Paddle Field
+            renderer.setColor( paddleLeft.color );
             renderer.rect( paddleLeft.outerBounds.x, paddleLeft.outerBounds.y, paddleLeft.outerBounds.width, paddleLeft.outerBounds.height );
+            // Draw the Right Paddle Field
+            renderer.setColor( paddleRight.color );
             renderer.rect( paddleRight.outerBounds.x, paddleRight.outerBounds.y, paddleRight.outerBounds.width, paddleRight.outerBounds.height );
+            // Draw the Top Paddle Field
+            renderer.setColor( paddleTop.color );
             renderer.rect( paddleTop.outerBounds.x, paddleTop.outerBounds.y, paddleTop.outerBounds.width, paddleTop.outerBounds.height );
+            // Draw the Bottom Paddle Field
+            renderer.setColor( paddleBottom.color );
             renderer.rect( paddleBottom.outerBounds.x, paddleBottom.outerBounds.y, paddleBottom.outerBounds.width, paddleBottom.outerBounds.height );
 
         renderer.end();
         
         // Draw Test Lines.
+        /*
         renderer.begin(  ShapeRenderer.ShapeType.Line );
+            renderer.setColor( new Color(1.0f, 1.0f, 1.0f, 1.0f) );
             renderer.line( (fieldBounds.x + fieldBounds.height / 2.0f), fieldBounds.y, (fieldBounds.x + fieldBounds.height / 2.0f), (fieldBounds.y + fieldBounds.height) );
             renderer.line( fieldBounds.x, (fieldBounds.y + fieldBounds.height / 2.0f), (fieldBounds.x + fieldBounds.width), (fieldBounds.y + fieldBounds.height / 2.0f) );
         renderer.end();
+        */
         
         // Draw solids.
         renderer.begin( ShapeRenderer.ShapeType.FilledRectangle );
 
+            ball.color = lastHitColor;
             ball.draw( renderer );
             paddleLeft.draw( renderer );
             
@@ -194,78 +265,235 @@ public class GameScreen implements Screen
     
     public void collision()
     {
-        collisionBallToWall();
+        boolean collideFields = false;
         
+        collideFields = collisionBallToPaddleFields();
         
+        if ( !collideFields )
+            collisionBallToWalls();
         
+        collisionBallToPaddles();
     }
     
-    private void collisionBallToWall()
+    public boolean collisionBallToPaddleFields()
+    {
+        boolean hitField = false;
+        
+        //Check for collision with the left paddle field.
+        if ( (paddleLeft.score > 0) && ball.bounds.overlaps( paddleLeft.outerBounds ) )
+        {
+            hitField = true;
+            
+            if ( paddleLeft.outerBounds.contains( ball.bounds ))
+            {
+                //change state
+                state = GameStates.SCORE;
+                paddleLeft.score -= 1;
+            }
+            
+        }
+        
+        //Check for collision with the right paddle field.
+        if( (paddleRight.score > 0) && !hitField && ball.bounds.overlaps( paddleRight.outerBounds ) )
+        {
+            hitField = true;        
+            
+            if ( paddleRight.outerBounds.contains( ball.bounds ))
+            {
+                //change state
+                state = GameStates.SCORE;
+                paddleRight.score -= 1;
+            }
+        }
+     
+        //Check for collision with the top paddle field.
+        if( (paddleTop.score > 0) && !hitField && ball.bounds.overlaps( paddleTop.outerBounds ) )
+        {
+            hitField = true;        
+            
+            if ( paddleTop.outerBounds.contains( ball.bounds ))
+            {
+                //change state
+                state = GameStates.SCORE;
+                paddleTop.score -= 1;
+            }
+        }
+        
+        //Check for collision with the bottom paddle field.
+        if( (paddleBottom.score > 0) && !hitField && ball.bounds.overlaps( paddleBottom.outerBounds ) )
+        {
+            hitField = true;        
+            
+            if ( paddleBottom.outerBounds.contains( ball.bounds ))
+            {
+                //change state
+                state = GameStates.SCORE;
+                paddleBottom.score -= 1;
+            }
+        }
+        
+        return hitField;
+    }
+    
+    public void collisionBallToWalls()
     {
         // If the Ball Top is greater than the Field Top
         if ( (ball.position.y + ball.bounds.height) > (fieldBounds.y + fieldBounds.height) )
+        {
             ball.reflect( false, true );
+            ball.setPosition( ball.position.x, fieldBounds.y + fieldBounds.height - ball.bounds.height );
+        }
         
         // If the Ball Bottom is less than the Field Top
         if ( ball.position.y < fieldBounds.y )
+        {
             ball.reflect( false, true );
+            ball.setPosition( ball.position.x, fieldBounds.y );
+        }
         
         // If the Ball Right is greater than the Field Right
         if ( (ball.position.x + ball.bounds.width) > (fieldBounds.x + fieldBounds.width) )
-            ball.reflect( true, false ); 
+        {
+            ball.reflect( true, false );
+            ball.setPosition( fieldBounds.x + fieldBounds.width - ball.bounds.width, ball.position.y );
+        }
         
         // If the Ball Left is less than the Field Left
         if ( ball.position.x < fieldBounds.x )
-            ball.reflect( true, false ); 
+        {
+            ball.reflect( true, false );
+            ball.setPosition( fieldBounds.x, ball.position.y );
+        }
         
     }
 
+    public void collisionBallToPaddles()
+    {
+        // Collision - Left Paddle
+        if ( (paddleLeft.score > 0) && ball.bounds.overlaps( paddleLeft.bounds ) )
+        {
+            lastHitColor = paddleLeft.color;
+            
+            // Check if the ball is heading towards the paddle.
+            if ( ball.velocity.x < 0.0f )
+            {
+                ball.reflect( true, false );
+                ball.increaseXVelocity();
+            }
+        }
+        
+        // Collision - Right Paddle
+        if ( (paddleRight.score > 0) && ball.bounds.overlaps( paddleRight.bounds ) )
+        {
+            lastHitColor = paddleRight.color;
+            
+            // Check if the ball is heading towards the paddle.
+            if ( ball.velocity.x > 0.0f )
+            {
+                ball.reflect( true, false );
+                ball.increaseXVelocity();
+            }
+        }
+        
+        // Collision - Top Paddle
+        if ( (paddleTop.score > 0) && ball.bounds.overlaps( paddleTop.bounds ) )
+        {
+            lastHitColor = paddleTop.color;
+            
+            // Check if the ball is heading towards the paddle.
+            if ( ball.velocity.y > 0.0f )
+            {
+                ball.reflect( false, true );
+                ball.increaseYVelocity();
+            }
+        }
+        
+        // Collision - Bottom Paddle
+        if ( (paddleBottom.score > 0) && ball.bounds.overlaps( paddleBottom.bounds ) )
+        {
+            lastHitColor = paddleBottom.color;
+            
+            // Check if the ball is heading towards the paddle.
+            if ( ball.velocity.y < 0.0f )
+            {
+                ball.reflect( false, true );
+                ball.increaseYVelocity();
+            }
+        } 
+        
+    }
+    
     public void initialize()
     {
         // Initialize the ball.
         ball.setOuterBounds( fieldBounds );
-        ball.bounds.set( 0.0f, 0.0f, BALL_SIZE, BALL_SIZE );
-        ball.center();
-        ball.velocity.x = 200;
-        ball.velocity.setAngle( 125 );
         
         // Paddle variable. 
-        float leftRightPaddleY = fieldBounds.y + (fieldBounds.height / 2.0f) - (PADDLE_HEIGHT / 2.0f);
         float leftRightFieldY = fieldBounds.y + (fieldBounds.height / 2.0f) - (paddleFieldHeight / 2.0f);
-        float topBottomPaddleX = fieldBounds.x + (fieldBounds.width / 2.0f) - (PADDLE_HEIGHT / 2.0f); 
         float topBottomFieldX = fieldBounds.x + (fieldBounds.width / 2.0f) - (paddleFieldHeight / 2.0f);
         
         // Initialize paddle left - Aqua Blue
         paddleLeft.outerBounds.set( fieldBounds.x - (paddleFieldWidth), leftRightFieldY, paddleFieldWidth, (fieldBounds.height / 2.0f) );
-        paddleLeft.bounds.set( (paddleLeft.outerBounds.x + paddleLeft.outerBounds.width), leftRightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT );
-        paddleLeft.center();
         paddleLeft.color = new Color(0.0f, 0.85f, 1.0f, 1.0f);
         paddleLeft.upRightMoveKey = Input.Keys.W;
         paddleLeft.downLeftMoveKey = Input.Keys.S;
+        paddleLeft.score = STARTING_SCORE;
 
         // Initialize paddle right - Hot Pink
         paddleRight.outerBounds.set( (fieldBounds.x + fieldBounds.width), leftRightFieldY, paddleFieldWidth, (fieldBounds.height / 2.0f) );
-        paddleRight.bounds.set( (paddleRight.outerBounds.x - PADDLE_WIDTH), leftRightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT );
-        paddleRight.center();
         paddleRight.color = new Color(1.0f, 0.1f, 0.45f, 1.0f);
         paddleRight.upRightMoveKey = Input.Keys.W;
         paddleRight.downLeftMoveKey = Input.Keys.S;
+        paddleRight.score = STARTING_SCORE;
    
         // Initialize paddle top - Bright Yellow
         paddleTop.outerBounds.set( topBottomFieldX, (fieldBounds.y + fieldBounds.height), paddleFieldHeight, paddleFieldWidth );
-        paddleTop.bounds.set( topBottomPaddleX, paddleTop.outerBounds.y - PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_WIDTH  );
-        paddleTop.center();
         paddleTop.color = new Color(1.0f, 1.0f, 0.25f, 1.0f);
         paddleTop.upRightMoveKey = Input.Keys.D;
         paddleTop.downLeftMoveKey = Input.Keys.A;
+        paddleTop.score = STARTING_SCORE;
 
         // Initialize paddle top - Neon Green
-        paddleBottom.color = new Color(0.18f, 1.0f, 0.09f, 1.0f);
         paddleBottom.outerBounds.set( topBottomFieldX, (fieldBounds.y) - (paddleFieldWidth), paddleFieldHeight, paddleFieldWidth );
-        paddleBottom.bounds.set( topBottomPaddleX, paddleBottom.outerBounds.y + paddleFieldWidth, PADDLE_HEIGHT, PADDLE_WIDTH  );
-        paddleBottom.center();
+        paddleBottom.color = new Color(0.18f, 1.0f, 0.09f, 1.0f);
         paddleBottom.upRightMoveKey = Input.Keys.D;
         paddleBottom.downLeftMoveKey = Input.Keys.A;
+        paddleBottom.score = STARTING_SCORE;
+        
+        // Call reset to set paddle initial locations.
+        reset();
+    }
+    
+    public void reset()
+    {
+        float leftRightPaddleY = fieldBounds.y + (fieldBounds.height / 2.0f) - (PADDLE_HEIGHT / 2.0f);
+        float topBottomPaddleX = fieldBounds.x + (fieldBounds.width / 2.0f) - (PADDLE_HEIGHT / 2.0f); 
+        
+        // Reset the ball
+        ball.bounds.set( 0.0f, 0.0f, BALL_SIZE, BALL_SIZE );
+        ball.center();
+        ball.velocity.x = 200;
+        ball.velocity.y = 200;
+        ball.velocity.setAngle( 117 );
+        
+        // Reset Left Paddle
+        paddleLeft.bounds.set( (paddleLeft.outerBounds.x + paddleLeft.outerBounds.width), leftRightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT );
+        paddleLeft.center();
+
+        // Reset Right Paddle
+        paddleRight.bounds.set( (paddleRight.outerBounds.x - PADDLE_WIDTH), leftRightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT );
+        paddleRight.center();
+        
+        // Reset Top Paddle
+        paddleTop.bounds.set( topBottomPaddleX, paddleTop.outerBounds.y - PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_WIDTH  );
+        paddleTop.center();
+        
+        // Reset Bottom Paddle
+        paddleBottom.bounds.set( topBottomPaddleX, paddleBottom.outerBounds.y + paddleFieldWidth, PADDLE_HEIGHT, PADDLE_WIDTH  );
+        paddleBottom.center();
+        
+        // Reset the game color.
+        lastHitColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
     }
     
     @Override

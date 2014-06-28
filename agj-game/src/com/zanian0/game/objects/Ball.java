@@ -12,7 +12,7 @@ public class Ball extends BaseObject
     
     public void center()
     {
-        setPosition( (outerBounds.width / 2) - (bounds.width / 2) , (outerBounds.height / 2) - (bounds.height / 2) );
+        setPosition( outerBounds.x + (outerBounds.width / 2) - (bounds.width / 2) , outerBounds.y + (outerBounds.height / 2) - (bounds.height / 2) );
     }
     
     public void reflect(boolean xAxis, boolean yAxis)
@@ -32,6 +32,18 @@ public class Ball extends BaseObject
                 velocity.x += BALL_X_INC;
             else
                 velocity.x -= BALL_X_INC;
+        }
+    }
+    
+    public void increaseYVelocity()
+    {
+        if (velocity.y < BALL_MAX_X_VELO ||
+            velocity.y > -BALL_MAX_X_VELO )
+        {
+            if (velocity.y > 0.0f)
+                velocity.y += BALL_X_INC;
+            else
+                velocity.y -= BALL_X_INC;
         }
     }
     
