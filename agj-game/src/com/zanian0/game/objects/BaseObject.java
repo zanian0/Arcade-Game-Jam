@@ -24,6 +24,8 @@ public class BaseObject
     
     public int moveDir;
     
+    public boolean isActive;
+    
     
     public void Init(float x, float y, float width, float height)
     {
@@ -42,7 +44,8 @@ public class BaseObject
         downLeftMoveKey = 0;
         
         moveDir = 0;
-
+        
+        isActive = false;
     }
     
     public void integrate( float dt ) 
@@ -88,6 +91,5 @@ public class BaseObject
         
         if ( Gdx.input.isKeyPressed(upRightMoveKey) )
             moveDir -= 1;      
-
     }
 }

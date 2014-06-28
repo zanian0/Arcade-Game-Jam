@@ -4,10 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.zanian0.game.MyGdxGame;
+import com.zanian0.game.objects.Ball;
+import com.zanian0.game.objects.PaddleLR;
+import com.zanian0.game.objects.PaddleUD;
 
 public class GameScreen implements Screen
 {
@@ -22,15 +24,57 @@ public class GameScreen implements Screen
 
     private MyGdxGame game;
 
+    // Player bounds.
     Rectangle BoundsLeft;
     Rectangle BoundsRight;
     Rectangle BoundsTop;
     Rectangle BoundsBottom;
     
+    // Player paddles.
+    PaddleLR paddleLeft;
+    PaddleLR paddleRight;
+    PaddleUD paddleTop;
+    PaddleUD Bottom;
+
+    // Game ball.
+    Ball ball;
+    
+    // Determines the size of the player area.
+    Rectangle fieldBounds;
     
     public GameScreen(MyGdxGame game)
     {
-        this.game = game;
+        this.game = game; 
+    }
+    
+    @Override
+    public void show()
+    {
+        w = Gdx.graphics.getWidth();
+        h = Gdx.graphics.getHeight();
+        
+        renderer = new ShapeRenderer();
+        
+        frameTimer = 0.0f;
+        
+        fieldBounds = new Rectangle();
+        
+        fieldBounds.height = h - (h * 0.2f);
+        fieldBounds.width = fieldBounds.height;
+        fieldBounds.y = (h - fieldBounds.height) / 2.0f;
+        fieldBounds.x = (w - fieldBounds.width) / 2.0f;
+        
+        // Instantiate player objects.
+        BoundsLeft = new Rectangle();
+        BoundsRight = new Rectangle();
+        BoundsTop = new Rectangle();
+        BoundsBottom = new Rectangle();
+        paddleLeft = new PaddleLR();
+        paddleRight = new PaddleLR();
+        paddleTop = new PaddleUD();
+        Bottom = new PaddleUD();
+        
+        
     }
 
     @Override
@@ -49,7 +93,7 @@ public class GameScreen implements Screen
 
     public void update()
     {
-        
+        collision();
         
     }
     
@@ -62,8 +106,16 @@ public class GameScreen implements Screen
         renderer.begin( ShapeRenderer.ShapeType.Rectangle );
             
             renderer.setColor( new Color(1,1,1,1) );
-            renderer.rect( 20, 20, w-40, h-40 );
+            renderer.rect( fieldBounds.x, fieldBounds.y, fieldBounds.width, fieldBounds.height );
+            
+            
         renderer.end();
+        
+    }
+    
+    public void collision()
+    {
+        
         
     }
     
@@ -73,16 +125,7 @@ public class GameScreen implements Screen
 
     }
 
-    @Override
-    public void show()
-    {
-        w = Gdx.graphics.getWidth();
-        h = Gdx.graphics.getHeight();
-        
-        renderer = new ShapeRenderer();
-        
-        frameTimer = 0.0f;
-    }
+
 
     @Override
     public void hide()
