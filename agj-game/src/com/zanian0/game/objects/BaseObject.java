@@ -26,10 +26,11 @@ public class BaseObject
     
     public boolean isActive;
     
+    public static final float PADDLE_SPEED = 200.0f;
     
-    public void Init(float x, float y, float width, float height)
+    BaseObject ()
     {
-        bounds = new Rectangle( x, y, width, height );
+        bounds = new Rectangle( 0.0f, 0.0f, 0.0f, 0.0f );
         
         outerBounds = new Rectangle( 0.0f, 0.0f, 0.0f, 0.0f );
         
@@ -68,7 +69,7 @@ public class BaseObject
     public void draw( ShapeRenderer renderer )
     {
         renderer.setColor( color );
-        renderer.rect( bounds.x, bounds.y, bounds.width, bounds.height );
+        renderer.filledRect( bounds.x, bounds.y, bounds.width, bounds.height );
     }
     
     public void setPosition( float x, float y )
@@ -82,14 +83,5 @@ public class BaseObject
     public void setOuterBounds(Rectangle ob)
     {
         outerBounds = ob;
-    }
-    
-    public void moveCheck()
-    {
-        if ( Gdx.input.isKeyPressed(upRightMoveKey) )
-            moveDir += 1;
-        
-        if ( Gdx.input.isKeyPressed(upRightMoveKey) )
-            moveDir -= 1;      
     }
 }

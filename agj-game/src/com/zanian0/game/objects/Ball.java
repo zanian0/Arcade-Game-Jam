@@ -2,8 +2,18 @@ package com.zanian0.game.objects;
 
 public class Ball extends BaseObject
 {
+    public Ball ()
+    {
+        super( );
+    }
+
     public static final float BALL_MAX_X_VELO = 500.0f;
     public static final float BALL_X_INC = 25.0f;
+    
+    public void center()
+    {
+        setPosition( (outerBounds.width / 2) - (bounds.width / 2) , (outerBounds.height / 2) - (bounds.height / 2) );
+    }
     
     public void reflect(boolean xAxis, boolean yAxis)
     {
@@ -23,5 +33,12 @@ public class Ball extends BaseObject
             else
                 velocity.x -= BALL_X_INC;
         }
+    }
+    
+    public void SetAngle(int angle)
+    {
+        velocity.setAngle( (float)angle );
+        
+        
     }
 }
