@@ -1,14 +1,14 @@
 package com.zanian0.game;
 
 import com.badlogic.gdx.Game;
-import com.zanian0.game.screen.PongGameScreen;
+import com.zanian0.game.screen.GameScreen;
 
 public class MyGdxGame extends Game {
 
     // The screens used in the game.
     //private MenuScreen menuScreen;
     //private CharSelectScreen charSelectScreen;
-    private PongGameScreen gameScreen;
+    private GameScreen gameScreen;
     //private OptionsScreen optionsScreen;
     
     
@@ -30,7 +30,7 @@ public class MyGdxGame extends Game {
 	@Override
 	public void create() 
 	{
-	    gameScreen = new PongGameScreen(this);
+	    gameScreen = new GameScreen(this);
 	    
 	    setScreen(gameScreen);
 /*	    
@@ -62,7 +62,7 @@ public class MyGdxGame extends Game {
 		//texture.dispose();
 	    gameScreen.dispose();
 	}
-
+/*
 	@Override
 	public void render() 
 	{
@@ -96,4 +96,5 @@ public class MyGdxGame extends Game {
 	{
 	    
 	}
+*/
 }

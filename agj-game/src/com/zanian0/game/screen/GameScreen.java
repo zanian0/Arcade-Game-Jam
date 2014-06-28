@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.zanian0.game.MyGdxGame;
 
-public class PongGameScreen implements Screen
+public class GameScreen implements Screen
 {
     private OrthographicCamera camera;
     
@@ -23,12 +23,9 @@ public class PongGameScreen implements Screen
 
     private MyGdxGame game;
     
-    public PongGameScreen(MyGdxGame game)
+    public GameScreen(MyGdxGame game)
     {
         this.game = game;
-
-        w = Gdx.graphics.getWidth();
-        h = Gdx.graphics.getHeight();
         
         //camera = new OrthographicCamera(1, h/w);
     }
