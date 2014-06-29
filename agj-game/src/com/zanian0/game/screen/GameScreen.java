@@ -26,6 +26,7 @@ public class GameScreen implements Screen
     float frameTimer;
     float scoreTimer;
     float winTimer;
+    float introTimer;
     
     private OrthographicCamera camera;
 
@@ -55,6 +56,9 @@ public class GameScreen implements Screen
     
     // Last paddle hit color.
     Color lastHitColor;
+    
+    // Did this get instantiated?
+    boolean wasCreated = false;
     
     //Game states.
     public enum GameStates {
@@ -99,6 +103,7 @@ public class GameScreen implements Screen
         frameTimer = 0.0f;
         scoreTimer = 0.0f;
         winTimer = 0.0f;
+        introTimer = 0.0f;
         
         // Set up the field.
         fieldBounds = new Rectangle();
@@ -133,6 +138,9 @@ public class GameScreen implements Screen
         
         // Set the initial state.
         state = GameStates.INTRO;
+        
+        // Say that this was created.
+        wasCreated = true;
     }
 
     @Override
@@ -142,7 +150,10 @@ public class GameScreen implements Screen
         switch (state)
         {
             case INTRO:
-                state = GameStates.PLAY;
+                introTimer += Gdx.graphics.getDeltaTime();
+                
+                if ( introTimer > 2.0 )
+                    state = GameStates.PLAY;
                 break;
                 
             case PLAY:
@@ -153,13 +164,11 @@ public class GameScreen implements Screen
                     frameTimer = 0.0f;
                     update();
                 }
-                
-                draw();
+
                 break;
                 
             case SCORE:
-                draw();
-                
+               
                 scoreTimer += Gdx.graphics.getDeltaTime();
                 if ( scoreTimer > 2.0f )
                     state = GameStates.RESET;
@@ -182,13 +191,13 @@ public class GameScreen implements Screen
                 break;
                 
             default:
-                break;  
+                break;
         };
         
-        if ( Gdx.input.isButtonPressed( Input.Keys.C ))
-        {
+        draw();
+        
+        if ( Gdx.input.isKeyPressed( Input.Keys.C ) )
             Gdx.app.exit(); 
-        }
  
     }
     
@@ -231,8 +240,8 @@ public class GameScreen implements Screen
 
     public void input()
     {
-        // Check if we need to kill the game.
-        if ( Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) )
+        // Check for reset.
+        if ( Gdx.input.isKeyPressed( Input.Keys.ALT_LEFT ) )
             reset();
         
         paddleLeft.moveCheck();
@@ -555,7 +564,8 @@ public class GameScreen implements Screen
     @Override
     public void dispose()
     {
-        renderer.dispose();
+        if ( wasCreated )
+            renderer.dispose();
     }
 
 }

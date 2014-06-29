@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.zanian0.game.MyGdxGame;
@@ -17,6 +17,9 @@ public class IntroScreen implements Screen
     
     private MyGdxGame game;
     
+    // Did this get instantiated?
+    boolean wasCreated = false;
+    
     public IntroScreen(MyGdxGame game)
     {
         this.game = game;
@@ -25,16 +28,19 @@ public class IntroScreen implements Screen
     @Override
     public void render( float delta )
     {
+        Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+        
         fontBatch.begin();
         
             font.draw( fontBatch, "HIT ANY BUTTON TO START", Gdx.graphics.getWidth() / 2.0f, Gdx.graphics.getHeight() / 2.0f );
             
         fontBatch.end();
         
-        if ( Gdx.input.isButtonPressed( Input.Keys.C ))
+        if ( Gdx.input.isKeyPressed( Input.Keys.C ) )
             Gdx.app.exit();
         
-        if ( Gdx.input.isButtonPressed( Input.Keys.X ) )
+        if ( Gdx.input.isKeyPressed( Input.Keys.ANY_KEY ) )
             game.setScreen(game.gameScreen);
         
     }
@@ -53,6 +59,8 @@ public class IntroScreen implements Screen
         font.setColor(Color.RED);
         
         fontBatch = new SpriteBatch();
+        
+        wasCreated = true;
     }
 
     @Override
@@ -76,7 +84,10 @@ public class IntroScreen implements Screen
     @Override
     public void dispose()
     {
-        fontBatch.dispose();
+        if ( wasCreated )
+        {
+            fontBatch.dispose();
+        }
         
     }
 
