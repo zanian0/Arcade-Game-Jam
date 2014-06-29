@@ -25,6 +25,7 @@ public class GameScreen implements Screen
     // Timers
     float frameTimer;
     float scoreTimer;
+    float winTimer;
     
     private OrthographicCamera camera;
 
@@ -94,8 +95,10 @@ public class GameScreen implements Screen
         
         renderer.setProjectionMatrix( camera.combined );
         
+        // Set timers.
         frameTimer = 0.0f;
         scoreTimer = 0.0f;
+        winTimer = 0.0f;
         
         // Set up the field.
         fieldBounds = new Rectangle();
@@ -172,11 +175,20 @@ public class GameScreen implements Screen
                 break;
                 
             case WIN:
+                
+                winTimer += Gdx.graphics.getDeltaTime();
+                if ( winTimer > 2.0f )
+                    game.setScreen( game.introScreen );
                 break;
                 
             default:
                 break;  
         };
+        
+        if ( Gdx.input.isButtonPressed( Input.Keys.C ))
+        {
+            Gdx.app.exit(); 
+        }
  
     }
     
@@ -191,19 +203,37 @@ public class GameScreen implements Screen
         paddleTop.integrate( Gdx.graphics.getDeltaTime() );
         paddleBottom.integrate( Gdx.graphics.getDeltaTime() );
         
-        collision();  
+        collision();
+        
+        scoreCheck();
         
     }
     
+    private void scoreCheck()
+    {
+        int playerCount = 0;
+        
+        // Check how many people are in the game.
+        if (paddleLeft.score > 0)
+            playerCount++;
+        if (paddleRight.score > 0)
+            playerCount++;
+        if (paddleTop.score > 0)
+            playerCount++;
+        if (paddleBottom.score > 0)
+            playerCount++;
+        
+        if (playerCount <= 1)
+            state = GameStates.WIN;
+
+        
+    }
+
     public void input()
     {
         // Check if we need to kill the game.
-        if ( Gdx.input.isKeyPressed(Input.Keys.C) )
-            Gdx.app.exit();
-
-        // Check if we need to kill the game.
-        if ( Gdx.input.isKeyPressed(Input.Keys.R) )
-            initialize();
+        if ( Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) )
+            reset();
         
         paddleLeft.moveCheck();
         paddleRight.moveCheck();
@@ -420,7 +450,6 @@ public class GameScreen implements Screen
                 ball.increaseYVelocity();
             }
         } 
-        
     }
     
     public void initialize()
@@ -527,7 +556,6 @@ public class GameScreen implements Screen
     public void dispose()
     {
         renderer.dispose();
-        
     }
 
 }
