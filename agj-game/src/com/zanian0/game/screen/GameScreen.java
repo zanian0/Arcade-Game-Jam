@@ -499,15 +499,15 @@ public class GameScreen implements Screen
         // Initialize paddle top - Bright Yellow
         paddleTop.outerBounds.set( topBottomFieldX, (fieldBounds.y + fieldBounds.height), paddleFieldHeight, paddleFieldWidth );
         paddleTop.color = new Color(1.0f, 1.0f, 0.25f, 1.0f);
-        paddleTop.upRightMoveKey = Input.Keys.UP;
-        paddleTop.downLeftMoveKey = Input.Keys.DOWN;
+        paddleTop.upRightMoveKey = Input.Keys.RIGHT;
+        paddleTop.downLeftMoveKey = Input.Keys.LEFT;
         paddleTop.score = STARTING_SCORE;
 
         // Initialize paddle bottom - Neon Green
         paddleBottom.outerBounds.set( topBottomFieldX, (fieldBounds.y) - (paddleFieldWidth), paddleFieldHeight, paddleFieldWidth );
         paddleBottom.color = new Color(0.18f, 1.0f, 0.09f, 1.0f);
-        paddleBottom.upRightMoveKey = Input.Keys.R;
-        paddleBottom.downLeftMoveKey = Input.Keys.F;
+        paddleBottom.upRightMoveKey = Input.Keys.G;
+        paddleBottom.downLeftMoveKey = Input.Keys.D;
         paddleBottom.score = STARTING_SCORE;
         
         // Call reset to set paddle initial locations.

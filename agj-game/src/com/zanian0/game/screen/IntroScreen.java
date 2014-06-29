@@ -5,12 +5,19 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.zanian0.game.MyGdxGame;
 
 public class IntroScreen implements Screen
 {
+    
+    // Screen size.
+    float w;
+    float h;
+    
+    private OrthographicCamera camera;
     
     private SpriteBatch fontBatch;
     private BitmapFont font;
@@ -42,7 +49,6 @@ public class IntroScreen implements Screen
         
         if ( Gdx.input.isKeyPressed( Input.Keys.ANY_KEY ) )
             game.setScreen(game.gameScreen);
-        
     }
 
     @Override
@@ -61,6 +67,17 @@ public class IntroScreen implements Screen
         fontBatch = new SpriteBatch();
         
         wasCreated = true;
+        
+        w = Gdx.graphics.getWidth();
+        h = Gdx.graphics.getHeight();
+        
+        camera = new OrthographicCamera(w, h);
+        
+        camera.translate( w/2, h/2 );
+        
+        camera.update();
+        
+        fontBatch.setProjectionMatrix( camera.combined );
     }
 
     @Override
