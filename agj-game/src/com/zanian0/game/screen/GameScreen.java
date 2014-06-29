@@ -1,5 +1,7 @@
 package com.zanian0.game.screen;
 
+import java.util.Random;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -71,11 +73,14 @@ public class GameScreen implements Screen
     
     GameStates state;
     
+    Random rand = new Random();
+    
     // DEFINES
     public static final int BALL_SIZE = 6;
     public static final float PADDLE_HEIGHT = 50.0f;
     public static final float PADDLE_WIDTH = 5.0f;
-    public static final int STARTING_SCORE = 2;
+    public static final int STARTING_SCORE = 7;
+    public static final float BALL_START_SPEED = 200.0f;
   
     
     public GameScreen(MyGdxGame game)
@@ -141,6 +146,9 @@ public class GameScreen implements Screen
         
         // Say that this was created.
         wasCreated = true;
+        
+        // Set the random ball flinger
+        //rand = new Random();
     }
 
     @Override
@@ -418,6 +426,7 @@ public class GameScreen implements Screen
             {
                 ball.reflect( true, false );
                 ball.increaseXVelocity();
+                ball.paddleReflectX( paddleLeft.bounds, 0  );
             }
         }
         
@@ -431,6 +440,7 @@ public class GameScreen implements Screen
             {
                 ball.reflect( true, false );
                 ball.increaseXVelocity();
+                ball.paddleReflectX( paddleRight.bounds, 180);
             }
         }
         
@@ -444,6 +454,7 @@ public class GameScreen implements Screen
             {
                 ball.reflect( false, true );
                 ball.increaseYVelocity();
+                ball.paddleReflectY(paddleTop.bounds, 270);
             }
         }
         
@@ -457,6 +468,7 @@ public class GameScreen implements Screen
             {
                 ball.reflect( false, true );
                 ball.increaseYVelocity();
+                ball.paddleReflectY(paddleBottom.bounds, 90);
             }
         } 
     }
@@ -473,29 +485,29 @@ public class GameScreen implements Screen
         // Initialize paddle left - Aqua Blue
         paddleLeft.outerBounds.set( fieldBounds.x - (paddleFieldWidth), leftRightFieldY, paddleFieldWidth, (fieldBounds.height / 2.0f) );
         paddleLeft.color = new Color(0.0f, 0.85f, 1.0f, 1.0f);
-        paddleLeft.upRightMoveKey = Input.Keys.W;
-        paddleLeft.downLeftMoveKey = Input.Keys.S;
+        paddleLeft.upRightMoveKey = Input.Keys.I;
+        paddleLeft.downLeftMoveKey = Input.Keys.K;
         paddleLeft.score = STARTING_SCORE;
 
         // Initialize paddle right - Hot Pink
         paddleRight.outerBounds.set( (fieldBounds.x + fieldBounds.width), leftRightFieldY, paddleFieldWidth, (fieldBounds.height / 2.0f) );
         paddleRight.color = new Color(1.0f, 0.1f, 0.45f, 1.0f);
-        paddleRight.upRightMoveKey = Input.Keys.W;
-        paddleRight.downLeftMoveKey = Input.Keys.S;
+        paddleRight.upRightMoveKey = Input.Keys.Y;
+        paddleRight.downLeftMoveKey = Input.Keys.N;
         paddleRight.score = STARTING_SCORE;
    
         // Initialize paddle top - Bright Yellow
         paddleTop.outerBounds.set( topBottomFieldX, (fieldBounds.y + fieldBounds.height), paddleFieldHeight, paddleFieldWidth );
         paddleTop.color = new Color(1.0f, 1.0f, 0.25f, 1.0f);
-        paddleTop.upRightMoveKey = Input.Keys.D;
-        paddleTop.downLeftMoveKey = Input.Keys.A;
+        paddleTop.upRightMoveKey = Input.Keys.UP;
+        paddleTop.downLeftMoveKey = Input.Keys.DOWN;
         paddleTop.score = STARTING_SCORE;
 
-        // Initialize paddle top - Neon Green
+        // Initialize paddle bottom - Neon Green
         paddleBottom.outerBounds.set( topBottomFieldX, (fieldBounds.y) - (paddleFieldWidth), paddleFieldHeight, paddleFieldWidth );
         paddleBottom.color = new Color(0.18f, 1.0f, 0.09f, 1.0f);
-        paddleBottom.upRightMoveKey = Input.Keys.D;
-        paddleBottom.downLeftMoveKey = Input.Keys.A;
+        paddleBottom.upRightMoveKey = Input.Keys.R;
+        paddleBottom.downLeftMoveKey = Input.Keys.F;
         paddleBottom.score = STARTING_SCORE;
         
         // Call reset to set paddle initial locations.
@@ -510,9 +522,12 @@ public class GameScreen implements Screen
         // Reset the ball
         ball.bounds.set( 0.0f, 0.0f, BALL_SIZE, BALL_SIZE );
         ball.center();
-        ball.velocity.x = 200;
-        ball.velocity.y = 200;
-        ball.velocity.setAngle( 117 );
+        ball.velocity.x = BALL_START_SPEED;
+        ball.velocity.y = BALL_START_SPEED;
+        int angle = rand.nextInt( 360 );
+        if ( (angle % 90) == 0 )
+            angle += 5;
+        ball.velocity.setAngle( angle );
         
         // Reset Left Paddle
         paddleLeft.bounds.set( (paddleLeft.outerBounds.x + paddleLeft.outerBounds.width), leftRightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT );
